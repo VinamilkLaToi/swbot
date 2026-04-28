@@ -43,13 +43,17 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 # Refresh PATH for current session from registry
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 
-# Locate executables explicitly in case PATH didn't propagate yet
+# Locate executables. Prefer explicit paths (avoids Microsoft Store stubs
+# at C:\Users\*\AppData\Local\Microsoft\WindowsApps\*.exe which shadow the
+# real installs in PATH).
 function Find-Exe($name, $candidates) {
-    if (Get-Command $name -ErrorAction SilentlyContinue) {
-        return (Get-Command $name).Source
-    }
     foreach ($p in $candidates) {
         if (Test-Path $p) { return $p }
+    }
+    # Fallback: PATH lookup, but reject WindowsApps stubs
+    $cmd = Get-Command $name -ErrorAction SilentlyContinue
+    if ($cmd -and ($cmd.Source -notlike "*WindowsApps*")) {
+        return $cmd.Source
     }
     return $null
 }
@@ -62,12 +66,12 @@ if (-not $gitExe) { Fail "Git not found after install. Restart PowerShell and re
 Ok "git: $gitExe"
 
 $pythonExe = Find-Exe "python" @(
+    "C:\Program Files\Python311\python.exe",
+    "C:\Program Files\Python312\python.exe",
     "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe",
     "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe",
     "C:\Python311\python.exe",
-    "C:\Python312\python.exe",
-    "C:\Program Files\Python311\python.exe",
-    "C:\Program Files\Python312\python.exe"
+    "C:\Python312\python.exe"
 )
 if (-not $pythonExe) { Fail "Python not found after install. Restart PowerShell and re-run." }
 Ok "python: $pythonExe"
