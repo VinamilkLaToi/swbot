@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 function Info($msg)  { Write-Host "[setup] $msg" -ForegroundColor Cyan }
 function Ok($msg)    { Write-Host "[ ok ] $msg"  -ForegroundColor Green }
 function Warn($msg)  { Write-Host "[warn] $msg"  -ForegroundColor Yellow }
-function Fail($msg)  { Write-Host "[fail] $msg"  -ForegroundColor Red; exit 1 }
+function Fail($msg)  { Write-Host "[fail] $msg"  -ForegroundColor Red; throw $msg }
 
 # --- 1. winget check ---
 Info "Checking winget..."
