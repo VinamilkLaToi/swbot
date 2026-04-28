@@ -40,8 +40,37 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Ok "Git found: $(git --version)"
 }
 
-# Refresh PATH for current session
+# Refresh PATH for current session from registry
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+# Locate executables explicitly in case PATH didn't propagate yet
+function Find-Exe($name, $candidates) {
+    if (Get-Command $name -ErrorAction SilentlyContinue) {
+        return (Get-Command $name).Source
+    }
+    foreach ($p in $candidates) {
+        if (Test-Path $p) { return $p }
+    }
+    return $null
+}
+
+$gitExe = Find-Exe "git" @(
+    "C:\Program Files\Git\cmd\git.exe",
+    "C:\Program Files (x86)\Git\cmd\git.exe"
+)
+if (-not $gitExe) { Fail "Git not found after install. Restart PowerShell and re-run." }
+Ok "git: $gitExe"
+
+$pythonExe = Find-Exe "python" @(
+    "$env:LOCALAPPDATA\Programs\Python\Python311\python.exe",
+    "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe",
+    "C:\Python311\python.exe",
+    "C:\Python312\python.exe",
+    "C:\Program Files\Python311\python.exe",
+    "C:\Program Files\Python312\python.exe"
+)
+if (-not $pythonExe) { Fail "Python not found after install. Restart PowerShell and re-run." }
+Ok "python: $pythonExe"
 
 # --- 4. Clone repo ---
 $REPO_DIR = "C:\swbot"
@@ -49,10 +78,10 @@ Info "Setting up repo at $REPO_DIR..."
 if (Test-Path "$REPO_DIR\.git") {
     Info "Repo exists — pulling latest"
     Push-Location $REPO_DIR
-    git pull
+    & $gitExe pull
     Pop-Location
 } else {
-    git clone https://github.com/VinamilkLaToi/swbot.git $REPO_DIR
+    & $gitExe clone https://github.com/VinamilkLaToi/swbot.git $REPO_DIR
 }
 Ok "Repo ready"
 
@@ -60,7 +89,7 @@ Ok "Repo ready"
 Push-Location $REPO_DIR
 Info "Creating venv..."
 if (-not (Test-Path ".venv")) {
-    python -m venv .venv
+    & $pythonExe -m venv .venv
 }
 Ok "venv ready"
 
