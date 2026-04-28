@@ -27,14 +27,14 @@ try {
     }
 } catch {}
 if (-not $pythonOk) {
-    winget install -e --id Python.Python.3.11 --silent --accept-source-agreements --accept-package-agreements
+    winget install -e --id Python.Python.3.11 --source winget --silent --accept-source-agreements --accept-package-agreements
     Ok "Python installed (you may need to restart PowerShell for PATH)"
 }
 
 # --- 3. Git ---
 Info "Installing Git (skip if already installed)..."
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    winget install -e --id Git.Git --silent --accept-source-agreements --accept-package-agreements
+    winget install -e --id Git.Git --source winget --silent --accept-source-agreements --accept-package-agreements
     Ok "Git installed"
 } else {
     Ok "Git found: $(git --version)"
