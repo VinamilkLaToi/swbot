@@ -38,8 +38,8 @@ def cmd_smoke() -> int:
 
 
 def cmd_scenario(args: argparse.Namespace) -> int:
-    print("[scenario] Not implemented yet — Phase 3.")
-    return 0
+    from .state_machine import run as run_scenario
+    return run_scenario(max_runs=args.max_runs, sell=not args.no_sell)
 
 
 def cmd_db10(args: argparse.Namespace) -> int:
@@ -53,8 +53,9 @@ def main() -> int:
 
     sub.add_parser("smoke", help="Smoke test ADB + screencap + Telegram")
 
-    sc = sub.add_parser("scenario", help="Farm hầm chỉ định")
-    sc.add_argument("--max-runs", type=int, default=100)
+    sc = sub.add_parser("scenario", help="Farm hầm chỉ định (Cairos Dungeon)")
+    sc.add_argument("--max-runs", type=int, default=0, help="0 = infinite")
+    sc.add_argument("--no-sell", action="store_true", help="Skip Sell Selected step")
 
     db = sub.add_parser("db10", help="Farm DB10 with auto sell")
     db.add_argument("--sell-every", type=int, default=30)
